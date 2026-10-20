@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bx37mbnsad6v0"]
+
+[ext_resource type="PackedScene" uid="uid://blksphr4stk3n" path="res://tile_map_layer.tscn" id="1_jv3dj"]
+[ext_resource type="PackedScene" uid="uid://bkra26d1i63qi" path="res://pac_man.tscn" id="2_kjnu5"]
+
+[node name="Pacman-TheGame" type="Node2D" unique_id=1631652370]
+
+[node name="Map" parent="." unique_id=729936865 instance=ExtResource("1_jv3dj")]
+
+[node name="PacMan" parent="." unique_id=914295905 instance=ExtResource("2_kjnu5")]
+position = Vector2(112, 212)
