@@ -7,5 +7,6 @@
 
 [node name="Map" parent="." unique_id=729936865 instance=ExtResource("1_jv3dj")]
 
-[node name="PacMan" parent="." unique_id=914295905 instance=ExtResource("2_kjnu5")]
+[node name="PacMan" parent="." unique_id=914295905 node_paths=PackedStringArray("Map") instance=ExtResource("2_kjnu5")]
 position = Vector2(112, 212)
+Map = NodePath("../Map")

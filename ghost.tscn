@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://kulkt7gaerbg" path="res://ghosts.png" id="1_v5pp4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aw6od"]
+size = Vector2(8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6attn"]
 atlas = ExtResource("1_v5pp4")

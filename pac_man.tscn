@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://d0hefefsocw40" path="res://pacman.png" id="1_ct74y"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_71blr"]
-size = Vector2(15, 15)
+size = Vector2(8, 8)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7e75u"]
 atlas = ExtResource("1_ct74y")
@@ -178,10 +178,9 @@ animations = [{
 script = ExtResource("1_7e75u")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=265641861]
-position = Vector2(-0.5, -0.5)
 shape = SubResource("RectangleShape2D_71blr")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=732975814]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_71blr")
-animation = &"chomp_down"
+animation = &"chomp_left"
