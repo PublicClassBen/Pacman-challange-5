@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://blksphr4stk3n" path="res://tile_map_layer.tscn" id="1_jv3dj"]
 [ext_resource type="PackedScene" uid="uid://bkra26d1i63qi" path="res://pac_man.tscn" id="2_kjnu5"]
+[ext_resource type="PackedScene" uid="uid://dk4kmdaa4754w" path="res://ghost.tscn" id="4_h2s06"]
 
 [node name="Pacman-TheGame" type="Node2D" unique_id=1631652370]
 
@@ -10,3 +11,22 @@
 [node name="PacMan" parent="." unique_id=914295905 node_paths=PackedStringArray("Map") instance=ExtResource("2_kjnu5")]
 position = Vector2(112, 212)
 Map = NodePath("../Map")
+
+[node name="Red" parent="." unique_id=680381391 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
+position = Vector2(112, 116)
+Map = NodePath("../Map")
+
+[node name="Ghost2" parent="." unique_id=92733030 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
+position = Vector2(111, 261)
+Map = NodePath("../Map")
+ghostType = 1
+
+[node name="Yellow" parent="." unique_id=652231361 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
+position = Vector2(52, 68)
+Map = NodePath("../Map")
+ghostType = 2
+
+[node name="Blue" parent="." unique_id=447000874 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
+position = Vector2(196, 68)
+Map = NodePath("../Map")
+ghostType = 3

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://dk4kmdaa4754w"]
 
+[ext_resource type="Script" uid="uid://bevtno3fv7n16" path="res://Ghost.cs" id="1_6attn"]
 [ext_resource type="Texture2D" uid="uid://kulkt7gaerbg" path="res://ghosts.png" id="1_v5pp4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aw6od"]
@@ -413,6 +414,7 @@ animations = [{
 }]
 
 [node name="Ghost" type="CharacterBody2D" unique_id=680381391]
+script = ExtResource("1_6attn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1781268743]
 shape = SubResource("RectangleShape2D_aw6od")
@@ -420,5 +422,4 @@ shape = SubResource("RectangleShape2D_aw6od")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=478915875]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_71blr")
-animation = &"pink_ghost_up"
-frame_progress = 0.06277284
+animation = &"pink_ghost_left"
