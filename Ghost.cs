@@ -1,22 +1,35 @@
 using Godot;
-using System;
 public partial class Ghost : CharacterBody2D
 {
 	private Vector2 _direction = Vector2.Right;
 	private Vector2 _requestedDirection = Vector2.Right;
 	private Vector2 _targetPosition;
 	private bool _hasTarget;
-	[Export] public float Speed = 100f;
+	[Export] public float Speed = 70f;
 	[Export] public TileMapLayer Map { get; set; }
 
 	[Export] private Ghost_Type ghostType;
 
 	private AnimatedSprite2D AnimationPlayer;
 
+	private CharacterBody2D pacMan;
+	private Marker2D blinkyScatterMarker;
+	private Marker2D InkyScatterMarker;
+	private Marker2D PinkyScatterMarker;
+	private Marker2D ClydeScatterMarker;
+
+	private CharacterBody2D blinky;
+
 	public override void _Ready()
 	{
+		blinky = GetNode<CharacterBody2D>("../Red");
+		blinkyScatterMarker = GetNode<Marker2D>("../BlinkyScatter");
+		InkyScatterMarker = GetNode<Marker2D>("../InkyScatter");
+		PinkyScatterMarker = GetNode<Marker2D>("../PinkyScatter");
+		ClydeScatterMarker = GetNode<Marker2D>("../ClydeScatter");
+		pacMan = GetNode<CharacterBody2D>("../PacMan");
 		AnimationPlayer = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-		setGhostAnimationDirection(ghostType, Directional_Movement.DOWN);
+		setGhostAnimationDirection(Directional_Movement.DOWN);
 		if (Map?.TileSet == null)
 		{
 			GD.PushError("Assign Ghost's Map property to the maze TileMapLayer.");
@@ -31,8 +44,6 @@ public partial class Ghost : CharacterBody2D
 
 	public override void _PhysicsProcess(double delta)
 	{
-		GetInput();
-
 		float distanceLeft = Mathf.Max(Speed, 0f) * (float)delta;
 		bool moved = false;
 
@@ -41,6 +52,7 @@ public partial class Ghost : CharacterBody2D
 		{
 			if (!_hasTarget)
 			{
+				GetInput();
 				if (CanMove(_requestedDirection))
 					_direction = _requestedDirection;
 
@@ -59,12 +71,19 @@ public partial class Ghost : CharacterBody2D
 			distanceLeft -= step;
 
 			if (collision != null)
+			{
+				// Return to the tile center where this step started.
+				GlobalPosition = _targetPosition - GetGridStep(_direction);
+
+				// Allow the AI to choose another direction next frame.
+				_hasTarget = false;
+
 				break;
+			}
 
 			if (step >= distance)
 			{
 				_hasTarget = false;
-				ConsumeDot();
 			}
 		}
 
@@ -74,14 +93,9 @@ public partial class Ghost : CharacterBody2D
 
 	private void GetInput()
 	{
-		if (Input.IsActionJustPressed("right"))
-			_requestedDirection = Vector2.Right;
-		else if (Input.IsActionJustPressed("left"))
-			_requestedDirection = Vector2.Left;
-		else if (Input.IsActionJustPressed("up"))
-			_requestedDirection = Vector2.Up;
-		else if (Input.IsActionJustPressed("down"))
-			_requestedDirection = Vector2.Down;
+		//for now just figure out chase
+		chase();
+		//scatter();
 	}
 
 	private Vector2 GetGridStep(Vector2 direction)
@@ -104,32 +118,19 @@ public partial class Ghost : CharacterBody2D
 		}
 
 		if (_direction == Vector2.Right)
-			setGhostAnimationDirection(ghostType, Directional_Movement.RIGHT);
+			setGhostAnimationDirection(Directional_Movement.RIGHT);
 
 		else if (_direction == Vector2.Left)
-			setGhostAnimationDirection(ghostType, Directional_Movement.LEFT);
+			setGhostAnimationDirection(Directional_Movement.LEFT);
 
 		else if (_direction == Vector2.Up)
-			setGhostAnimationDirection(ghostType, Directional_Movement.UP);
+			setGhostAnimationDirection(Directional_Movement.UP);
 
 		else
-			setGhostAnimationDirection(ghostType, Directional_Movement.DOWN);
+			setGhostAnimationDirection(Directional_Movement.DOWN);
 	}
 
-	private void ConsumeDot()
-	{
-		// Convert Pac-Man's world position into a map cell.
-		Vector2I cell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
-
-		// Only replace small-dot tiles from your tileset source.
-		if (Map.GetCellSourceId(cell) == 0 &&
-			Map.GetCellAtlasCoords(cell) == new Vector2I(8, 2))
-		{
-			Map.SetCell(cell, 0, new Vector2I(0, 0));
-		}
-	}
-
-	private void setGhostAnimationDirection(Ghost_Type type, Directional_Movement direction)
+	private void setGhostAnimationDirection(Directional_Movement direction)
 	{
 		switch (ghostType)
 		{
@@ -217,5 +218,306 @@ public partial class Ghost : CharacterBody2D
 				GD.PushError("Assign Ghost Type property to the Ghost Object.");
 				break;
 		}
+	}
+
+	//rules: Ghosts are not allowed to reverse their direction of travel (But they can when they change modes)
+
+	/*
+		Ghosts are forced to reverse direction by the system anytime the mode changes from:
+		chase-to-scatter, chase-to-frightened, scatter-to-chase, and scatter-to-frightened.
+		Ghosts do not reverse direction when changing back from frightened to chase or scatter modes.
+	*/
+
+	//ghost is in chase mode to find and capture Pac-Man by hunting him down in the maze.
+	private void chase()
+	{
+		switch (ghostType)
+		{
+			case Ghost_Type.RED:
+				blinkyChase();
+				break;
+			case Ghost_Type.PINK:
+				pinkyChase();
+				break;
+			case Ghost_Type.YELLOW:
+				clydeChase();
+				break;
+			case Ghost_Type.BLUE:
+				inkyChase();
+				break;
+			default:
+				GD.PushError("Assign Ghost Type property to the Ghost Object.");
+				break;
+		}
+
+	}
+	private void inkyChase()
+	{
+		//Get the current cell of pacman
+		Vector2I pacManCell = Map.LocalToMap(Map.ToLocal(pacMan.GlobalPosition));
+		Vector2I ghostCell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+		Vector2I blinkyCell = Map.LocalToMap(Map.ToLocal(blinky.GlobalPosition));
+		Vector2I pacManDirection = ((PacMan)pacMan).CurrentDirection;
+
+		Vector2I ahead = pacManCell + pacManDirection * 2;
+
+		Vector2I offset = ahead - blinkyCell;
+		Vector2I targetCell = ahead + offset;
+
+		Vector2I[] directions =
+			{
+			Vector2I.Up,
+			Vector2I.Left,
+			Vector2I.Down,
+			Vector2I.Right
+		};
+
+		int bestScore = int.MaxValue;
+		Vector2 bestDirection = _direction;
+		foreach (Vector2I direction in directions)
+		{
+			Vector2 movementDirection = (Vector2)direction;
+
+			//not allowed to turn around
+			if (movementDirection == -_direction)
+				continue;
+			//blocked by wall
+			if (!CanMove(movementDirection))
+				continue;
+
+			Vector2I nextCell = ghostCell + direction;
+			int dx = nextCell.X - targetCell.X;
+			int dy = nextCell.Y - targetCell.Y;
+			int score = dx * dx + dy * dy;
+
+			if (score < bestScore)
+			{
+				bestScore = score;
+				bestDirection = movementDirection;
+			}
+		}
+		if (bestScore == int.MaxValue && CanMove(-_direction))
+		{
+			bestDirection = -_direction;
+		}
+		_requestedDirection = bestDirection;
+	}
+
+	private void pinkyChase()
+	{
+		//Get the current cell of pacman
+		Vector2I pacManCell = Map.LocalToMap(Map.ToLocal(pacMan.GlobalPosition));
+		Vector2I ghostCell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+		Vector2I targetCell = pacManCell + ((PacMan)pacMan).CurrentDirection * 4;
+
+		Vector2I[] directions =
+			{
+			Vector2I.Up,
+			Vector2I.Left,
+			Vector2I.Down,
+			Vector2I.Right
+		};
+
+		int bestScore = int.MaxValue;
+		Vector2 bestDirection = _direction;
+		foreach (Vector2I direction in directions)
+		{
+			Vector2 movementDirection = (Vector2)direction;
+
+			//not allowed to turn around
+			if (movementDirection == -_direction)
+				continue;
+			//blocked by wall
+			if (!CanMove(movementDirection))
+				continue;
+
+			Vector2I nextCell = ghostCell + direction;
+			int dx = nextCell.X - targetCell.X;
+			int dy = nextCell.Y - targetCell.Y;
+			int score = dx * dx + dy * dy;
+
+			if (score < bestScore)
+			{
+				bestScore = score;
+				bestDirection = movementDirection;
+			}
+		}
+		if (bestScore == int.MaxValue && CanMove(-_direction))
+		{
+			bestDirection = -_direction;
+		}
+		_requestedDirection = bestDirection;
+	}
+	private void clydeChase()
+	{
+		//Get the current cell of pacman
+		Vector2I pacManCell = Map.LocalToMap(Map.ToLocal(pacMan.GlobalPosition));
+		Vector2I ghostCell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+
+		if (isWithinEightTiles(ghostCell, pacManCell))
+		{
+			scatter(ClydeScatterMarker);
+		}
+		else
+		{
+
+			Vector2I[] directions =
+			{
+			Vector2I.Up,
+			Vector2I.Left,
+			Vector2I.Down,
+			Vector2I.Right
+		};
+
+			int bestScore = int.MaxValue;
+			Vector2 bestDirection = _direction;
+			foreach (Vector2I direction in directions)
+			{
+				Vector2 movementDirection = (Vector2)direction;
+
+				//not allowed to turn around
+				if (movementDirection == -_direction)
+					continue;
+				//blocked by wall
+				if (!CanMove(movementDirection))
+					continue;
+
+				Vector2I nextCell = ghostCell + direction;
+				int dx = nextCell.X - pacManCell.X;
+				int dy = nextCell.Y - pacManCell.Y;
+				int score = dx * dx + dy * dy;
+
+				if (score < bestScore)
+				{
+					bestScore = score;
+					bestDirection = movementDirection;
+				}
+			}
+			if (bestScore == int.MaxValue && CanMove(-_direction))
+			{
+				bestDirection = -_direction;
+			}
+			_requestedDirection = bestDirection;
+		}
+	}
+
+	private bool isWithinEightTiles(Vector2I ghostCell, Vector2I pacManCell)
+	{
+		int dx = pacManCell.X - ghostCell.X;
+		int dy = pacManCell.Y - ghostCell.Y;
+
+		int distanceSquared = dx * dx + dy * dy;
+
+		return distanceSquared < 64;
+	}
+
+	private void blinkyChase()
+	{
+		//Get the current cell of pacman
+		Vector2I pacManCell = Map.LocalToMap(Map.ToLocal(pacMan.GlobalPosition));
+		Vector2I ghostCell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+
+		Vector2I[] directions =
+		{
+			Vector2I.Up,
+			Vector2I.Left,
+			Vector2I.Down,
+			Vector2I.Right
+		};
+
+		int bestScore = int.MaxValue;
+		Vector2 bestDirection = _direction;
+		foreach (Vector2I direction in directions)
+		{
+			Vector2 movementDirection = (Vector2)direction;
+
+			//not allowed to turn around
+			if (movementDirection == -_direction)
+				continue;
+			//blocked by wall
+			if (!CanMove(movementDirection))
+				continue;
+
+			Vector2I nextCell = ghostCell + direction;
+			int dx = nextCell.X - pacManCell.X;
+			int dy = nextCell.Y - pacManCell.Y;
+			int score = dx * dx + dy * dy;
+
+			if (score < bestScore)
+			{
+				bestScore = score;
+				bestDirection = movementDirection;
+			}
+		}
+		_requestedDirection = bestDirection;
+	}
+
+	private void scatter(Marker2D scatterMarker)
+	{
+		//Get the current cell of marker
+		Vector2I BlinkyScatterPosition = Map.LocalToMap(Map.ToLocal(scatterMarker.GlobalPosition));
+		Vector2I ghostCell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+
+		Vector2I[] directions =
+		{
+			Vector2I.Up,
+			Vector2I.Left,
+			Vector2I.Down,
+			Vector2I.Right
+		};
+
+		int bestScore = int.MaxValue;
+		Vector2 bestDirection = _direction;
+		foreach (Vector2I direction in directions)
+		{
+			Vector2 movementDirection = (Vector2)direction;
+
+			//not allowed to turn around
+			if (movementDirection == -_direction)
+				continue;
+			//blocked by wall
+			if (!CanMove(movementDirection))
+				continue;
+
+			Vector2I nextCell = ghostCell + direction;
+			int dx = nextCell.X - BlinkyScatterPosition.X;
+			int dy = nextCell.Y - BlinkyScatterPosition.Y;
+			int score = dx * dx + dy * dy;
+
+			if (score < bestScore)
+			{
+				bestScore = score;
+				bestDirection = movementDirection;
+			}
+		}
+		_requestedDirection = bestDirection;
+	}
+	// give up chase and head to their respective home corners.
+	private void scatter()
+	{
+		switch (ghostType)
+		{
+			case Ghost_Type.RED:
+				scatter(blinkyScatterMarker);
+				break;
+			case Ghost_Type.PINK:
+				scatter(PinkyScatterMarker);
+				break;
+			case Ghost_Type.YELLOW:
+				scatter(ClydeScatterMarker);
+				break;
+			case Ghost_Type.BLUE:
+				scatter(InkyScatterMarker);
+				break;
+			default:
+				GD.PushError("Assign Ghost Type property to the Ghost Object.");
+				break;
+		}
+	}
+	// After Pac-Man eats one of the four energizers.
+	//Ghosts use a pseudo-random number generator (PRNG) to pick a way to turn at each intersection when frightened.
+	private void frightened()
+	{
+
 	}
 }

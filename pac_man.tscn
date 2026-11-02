@@ -175,6 +175,7 @@ animations = [{
 }]
 
 [node name="PacMan" type="CharacterBody2D" unique_id=914295905]
+collision_layer = 2
 script = ExtResource("1_7e75u")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=265641861]

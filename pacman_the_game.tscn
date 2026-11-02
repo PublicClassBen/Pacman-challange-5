@@ -13,20 +13,32 @@ position = Vector2(112, 212)
 Map = NodePath("../Map")
 
 [node name="Red" parent="." unique_id=680381391 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(112, 116)
+position = Vector2(124, 116)
 Map = NodePath("../Map")
-
-[node name="Ghost2" parent="." unique_id=92733030 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(111, 261)
-Map = NodePath("../Map")
-ghostType = 1
 
 [node name="Yellow" parent="." unique_id=652231361 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(52, 68)
+position = Vector2(149, 139)
 Map = NodePath("../Map")
 ghostType = 2
 
 [node name="Blue" parent="." unique_id=447000874 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(196, 68)
+position = Vector2(52, 139)
 Map = NodePath("../Map")
 ghostType = 3
+
+[node name="Pink" parent="." unique_id=1329646625 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
+position = Vector2(100, 116)
+Map = NodePath("../Map")
+ghostType = 1
+
+[node name="BlinkyScatter" type="Marker2D" parent="." unique_id=878539654]
+position = Vector2(212, 36)
+
+[node name="PinkyScatter" type="Marker2D" parent="." unique_id=257571819]
+position = Vector2(12, 36)
+
+[node name="InkyScatter" type="Marker2D" parent="." unique_id=87826518]
+position = Vector2(212, 260)
+
+[node name="ClydeScatter" type="Marker2D" parent="." unique_id=1925470290]
+position = Vector2(12, 260)

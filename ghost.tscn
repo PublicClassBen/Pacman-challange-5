@@ -414,6 +414,7 @@ animations = [{
 }]
 
 [node name="Ghost" type="CharacterBody2D" unique_id=680381391]
+collision_layer = 4
 script = ExtResource("1_6attn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1781268743]

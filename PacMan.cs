@@ -6,8 +6,10 @@ public partial class PacMan : CharacterBody2D
     private Vector2 _requestedDirection = Vector2.Right;
     private Vector2 _targetPosition;
     private bool _hasTarget;
-    [Export] public float Speed = 100f;
+    [Export] public float Speed = 80f;
     [Export] public TileMapLayer Map { get; set; }
+
+    public Vector2I CurrentDirection => (Vector2I)_direction;
 
     private AnimatedSprite2D AnimationPlayer;
 
