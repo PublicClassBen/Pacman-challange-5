@@ -20,8 +20,11 @@ public partial class Ghost : CharacterBody2D
 
 	private CharacterBody2D blinky;
 
+	private GhostModeController _modeController;
+
 	public override void _Ready()
 	{
+		_modeController = GetNode<GhostModeController>("../GhostModeController");
 		blinky = GetNode<CharacterBody2D>("../Red");
 		blinkyScatterMarker = GetNode<Marker2D>("../BlinkyScatter");
 		InkyScatterMarker = GetNode<Marker2D>("../InkyScatter");
@@ -93,9 +96,16 @@ public partial class Ghost : CharacterBody2D
 
 	private void GetInput()
 	{
-		//for now just figure out chase
-		chase();
-		//scatter();
+		switch (_modeController.CurrentMode)
+		{
+			case GhostMode.CHASE:
+				chase();
+				break;
+			case GhostMode.SCATTER:
+				scatter();
+				break;
+		}
+
 	}
 
 	private Vector2 GetGridStep(Vector2 direction)
@@ -515,7 +525,6 @@ public partial class Ghost : CharacterBody2D
 		}
 	}
 	// After Pac-Man eats one of the four energizers.
-	//Ghosts use a pseudo-random number generator (PRNG) to pick a way to turn at each intersection when frightened.
 	private void frightened()
 	{
 
