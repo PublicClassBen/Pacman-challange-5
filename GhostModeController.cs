@@ -3,6 +3,9 @@ using System;
 
 public partial class GhostModeController : Node
 {
+	[Signal] public delegate void GhostEatenEventHandler(int points);
+	[Signal] public delegate void PacManCaughtEventHandler();
+	private int _ghostChain;
 
 	[Export]
 	public double ScatterSeconds = 7.0;
@@ -59,13 +62,24 @@ public partial class GhostModeController : Node
 		// Movement bodies ignore each other; handle eating without blocking them.
 		foreach (Ghost ghost in _ghosts)
 		{
-			if (ghost.CanBeEaten && ghost.GlobalPosition.DistanceSquaredTo(_pacMan.GlobalPosition) <= 36f)
+			if (ghost.GlobalPosition.DistanceSquaredTo(_pacMan.GlobalPosition) > 36f)
+				continue;
+			if (ghost.CanBeEaten)
+			{
 				ghost.Eat();
+				EmitSignal(SignalName.GhostEaten, 200 << Math.Min(_ghostChain++, 3));
+			}
+			else if (ghost.CanCatchPacMan)
+			{
+				EmitSignal(SignalName.PacManCaught);
+				return;
+			}
 		}
 	}
 
 	private void StartFrightened()
 	{
+		_ghostChain = 0;
 		_modeTimer.Paused = true;
 		_frightenedTimer.Start(Math.Max(FrightenedSeconds, 0.01));
 		foreach (Ghost ghost in _ghosts)

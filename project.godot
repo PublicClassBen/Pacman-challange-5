@@ -11,15 +11,17 @@ config_version=5
 [application]
 
 config/name="Pacman_Challenge5"
-run/main_scene="uid://bx37mbnsad6v0"
+run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 
 [display]
 
 window/size/viewport_width=224
 window/size/viewport_height=288
+window/size/window_width_override=672
+window/size/window_height_override=864
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep"
 
 [dotnet]
 

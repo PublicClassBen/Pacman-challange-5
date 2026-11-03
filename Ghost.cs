@@ -24,6 +24,7 @@ public partial class Ghost : CharacterBody2D
 	private double _recoveryLeft;
 	private readonly Queue<Vector2I> _returnPath = new();
 	private static readonly Vector2I[] GridDirections = { Vector2I.Up, Vector2I.Left, Vector2I.Down, Vector2I.Right };
+	internal bool CanCatchPacMan => !_isFrightened && !_returningEyes && _houseState == HouseState.Active;
 	internal bool CanBeEaten => _isFrightened && !_returningEyes && _houseState == HouseState.Active;
 	private float MovementSpeed => Mathf.Max(_returningEyes ? EyesSpeed : _isFrightened ? FrightenedSpeed : Speed, 0f);
 	private HouseState _houseState = HouseState.Active;

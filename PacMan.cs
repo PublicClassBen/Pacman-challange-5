@@ -3,6 +3,7 @@ using Godot;
 public partial class PacMan : CharacterBody2D
 {
     [Signal] public delegate void PowerPelletEatenEventHandler();
+    [Signal] public delegate void PelletConsumedEventHandler(Vector2I cell, int points);
     private Vector2 _direction = Vector2.Right;
     private Vector2 _requestedDirection = Vector2.Right;
     private Vector2 _targetPosition;
@@ -73,6 +74,14 @@ public partial class PacMan : CharacterBody2D
         UpdateAnimation(moved);
     }
 
+    internal void PlayDeath()
+    {
+        Velocity = Vector2.Zero;
+        AnimationPlayer.ProcessMode = ProcessModeEnum.Always;
+        AnimationPlayer.SpriteFrames.SetAnimationLoopMode("die", SpriteFrames.LoopMode.None);
+        AnimationPlayer.Play("die");
+    }
+
     private void GetInput()
     {
         if (Input.IsActionJustPressed("right"))
@@ -127,6 +136,7 @@ public partial class PacMan : CharacterBody2D
         if (atlas == new Vector2I(8, 2) || powerPellet)
         {
             Map.SetCell(cell, 0, new Vector2I(0, 0));
+            EmitSignal(SignalName.PelletConsumed, cell, powerPellet ? 50 : 10);
             if (powerPellet)
                 EmitSignal(SignalName.PowerPelletEaten);
         }
