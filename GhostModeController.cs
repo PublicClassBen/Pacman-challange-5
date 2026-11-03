@@ -14,6 +14,14 @@ public partial class GhostModeController : Node
 	[Export] public double FirstReleaseSeconds = 2.0;
 	[Export] public double ReleaseIntervalSeconds = 3.0;
 
+	[Export] public double FrightenedSeconds = 6.0;
+	[Export] public double FlashWarningSeconds = 2.0;
+
+	internal bool FrightenedFlashing => _frightenedTimer.TimeLeft > 0
+		&& _frightenedTimer.TimeLeft <= FlashWarningSeconds;
+	private Timer _frightenedTimer;
+	private Ghost[] _ghosts;
+	private PacMan _pacMan;
 	private Timer _releaseTimer;
 	private Ghost[] _releaseOrder;
 	private int _nextGhost;
@@ -37,6 +45,38 @@ public partial class GhostModeController : Node
 		_releaseTimer.OneShot = true;
 		_releaseTimer.Timeout += OnReleaseTimeout;
 		_releaseTimer.Start(Math.Max(FirstReleaseSeconds, 0.01));
+
+		_ghosts = new Ghost[] { GetNode<Ghost>("../Red"), _releaseOrder[0], _releaseOrder[1], _releaseOrder[2] };
+		_pacMan = GetNode<PacMan>("../PacMan");
+		_pacMan.PowerPelletEaten += StartFrightened;
+		_frightenedTimer = new Timer { Name = "FrightenedTimer", OneShot = true };
+		AddChild(_frightenedTimer);
+		_frightenedTimer.Timeout += EndFrightened;
+	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		// Movement bodies ignore each other; handle eating without blocking them.
+		foreach (Ghost ghost in _ghosts)
+		{
+			if (ghost.CanBeEaten && ghost.GlobalPosition.DistanceSquaredTo(_pacMan.GlobalPosition) <= 36f)
+				ghost.Eat();
+		}
+	}
+
+	private void StartFrightened()
+	{
+		_modeTimer.Paused = true;
+		_frightenedTimer.Start(Math.Max(FrightenedSeconds, 0.01));
+		foreach (Ghost ghost in _ghosts)
+			ghost.SetFrightened(true);
+	}
+
+	private void EndFrightened()
+	{
+		foreach (Ghost ghost in _ghosts)
+			ghost.SetFrightened(false);
+		_modeTimer.Paused = false;
 	}
 
 	private void OnReleaseTimeout()

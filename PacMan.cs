@@ -2,6 +2,7 @@ using Godot;
 
 public partial class PacMan : CharacterBody2D
 {
+    [Signal] public delegate void PowerPelletEatenEventHandler();
     private Vector2 _direction = Vector2.Right;
     private Vector2 _requestedDirection = Vector2.Right;
     private Vector2 _targetPosition;
@@ -117,11 +118,16 @@ public partial class PacMan : CharacterBody2D
         // Convert Pac-Man's world position into a map cell.
         Vector2I cell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
 
-        // Only replace small-dot tiles from your tileset source.
-        if (Map.GetCellSourceId(cell) == 0 &&
-            Map.GetCellAtlasCoords(cell) == new Vector2I(8, 2))
+        if (Map.GetCellSourceId(cell) != 0)
+            return;
+
+        Vector2I atlas = Map.GetCellAtlasCoords(cell);
+        bool powerPellet = atlas == new Vector2I(8, 1);
+        if (atlas == new Vector2I(8, 2) || powerPellet)
         {
             Map.SetCell(cell, 0, new Vector2I(0, 0));
+            if (powerPellet)
+                EmitSignal(SignalName.PowerPelletEaten);
         }
     }
 }
