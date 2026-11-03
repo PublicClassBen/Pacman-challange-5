@@ -64,6 +64,7 @@ public partial class PacMan : CharacterBody2D
             if (step >= distance)
             {
                 _hasTarget = false;
+                GlobalPosition = MazeTunnel.WrapPosition(Map, GlobalPosition);
                 ConsumeDot();
             }
         }

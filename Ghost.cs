@@ -168,6 +168,7 @@ public partial class Ghost : CharacterBody2D
 			if (step >= distance)
 			{
 				_hasTarget = false;
+				GlobalPosition = MazeTunnel.WrapPosition(Map, GlobalPosition);
 			}
 		}
 
@@ -727,7 +728,7 @@ public partial class Ghost : CharacterBody2D
 				Vector2I cell = frontier.Dequeue();
 				foreach (Vector2I direction in GridDirections)
 				{
-					Vector2I next = cell + direction;
+					Vector2I next = MazeTunnel.WrapCell(Map, cell + direction);
 					if (!bounds.HasPoint(next) || previous.ContainsKey(next))
 						continue;
 					Transform2D from = GlobalTransform;
@@ -747,7 +748,7 @@ public partial class Ghost : CharacterBody2D
 					_returnPath.Enqueue(path.Pop());
 			}
 		}
-		_requestedDirection = _returnPath.Count > 0 ? (Vector2)(_returnPath.Dequeue() - start) : Vector2.Zero;
+		_requestedDirection = _returnPath.Count > 0 ? (Vector2)MazeTunnel.DirectionToNeighbor(Map, start, _returnPath.Dequeue()) : Vector2.Zero;
 	}
 
 	private void MoveIntoHouse(double delta)
