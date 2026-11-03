@@ -14,7 +14,7 @@ position = Vector2(112, 212)
 Map = NodePath("../Map")
 
 [node name="Red" parent="." unique_id=680381391 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(124, 116)
+position = Vector2(112, 117)
 Map = NodePath("../Map")
 
 [node name="Yellow" parent="." unique_id=652231361 node_paths=PackedStringArray("Map", "HouseCenter", "HouseExit") instance=ExtResource("4_h2s06")]
