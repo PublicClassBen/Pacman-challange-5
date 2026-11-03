@@ -17,19 +17,28 @@ Map = NodePath("../Map")
 position = Vector2(124, 116)
 Map = NodePath("../Map")
 
-[node name="Yellow" parent="." unique_id=652231361 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(128, 139)
+[node name="Yellow" parent="." unique_id=652231361 node_paths=PackedStringArray("Map", "HouseCenter", "HouseExit") instance=ExtResource("4_h2s06")]
+position = Vector2(128, 140)
 Map = NodePath("../Map")
+StartInHouse = true
+HouseCenter = NodePath("../HouseCenter")
+HouseExit = NodePath("../HouseExit")
 ghostType = 2
 
-[node name="Blue" parent="." unique_id=447000874 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(96, 139)
+[node name="Blue" parent="." unique_id=447000874 node_paths=PackedStringArray("Map", "HouseCenter", "HouseExit") instance=ExtResource("4_h2s06")]
+position = Vector2(96, 140)
 Map = NodePath("../Map")
+StartInHouse = true
+HouseCenter = NodePath("../HouseCenter")
+HouseExit = NodePath("../HouseExit")
 ghostType = 3
 
-[node name="Pink" parent="." unique_id=1329646625 node_paths=PackedStringArray("Map") instance=ExtResource("4_h2s06")]
-position = Vector2(112, 139)
+[node name="Pink" parent="." unique_id=1329646625 node_paths=PackedStringArray("Map", "HouseCenter", "HouseExit") instance=ExtResource("4_h2s06")]
+position = Vector2(112, 140)
 Map = NodePath("../Map")
+StartInHouse = true
+HouseCenter = NodePath("../HouseCenter")
+HouseExit = NodePath("../HouseExit")
 ghostType = 1
 
 [node name="BlinkyScatter" type="Marker2D" parent="." unique_id=878539654]
@@ -48,3 +57,11 @@ position = Vector2(12, 260)
 script = ExtResource("4_ooj3t")
 
 [node name="ModeTimer" type="Timer" parent="GhostModeController" unique_id=706745884]
+
+[node name="ReleaseTimer" type="Timer" parent="GhostModeController" unique_id=1050661617]
+
+[node name="HouseCenter" type="Marker2D" parent="." unique_id=644058208]
+position = Vector2(112, 140)
+
+[node name="HouseExit" type="Marker2D" parent="." unique_id=930655462]
+position = Vector2(112, 116)

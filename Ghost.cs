@@ -7,6 +7,15 @@ public partial class Ghost : CharacterBody2D
 	private bool _hasTarget;
 	[Export] public float Speed = 70f;
 	[Export] public TileMapLayer Map { get; set; }
+	[Export] public bool StartInHouse { get; set; }
+	[Export] public Marker2D HouseCenter { get; set; }
+	[Export] public Marker2D HouseExit { get; set; }
+
+	private enum HouseState { Waiting, Exiting, Active }
+	private HouseState _houseState = HouseState.Active;
+	private bool _alignedWithDoor;
+	private bool _clearedDoor;
+	private Vector2 _mazeEntryPosition;
 
 	[Export] private Ghost_Type ghostType;
 
@@ -40,13 +49,40 @@ public partial class Ghost : CharacterBody2D
 			return;
 		}
 
-		// Align the spawn with the tile centers used for all subsequent turns.
-		Vector2I cell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
-		GlobalPosition = Map.ToGlobal(Map.MapToLocal(cell));
+		if (StartInHouse)
+		{
+			if (HouseCenter == null || HouseExit == null)
+			{
+				GD.PushError($"Assign house markers for {Name}.");
+				SetPhysicsProcess(false);
+				return;
+			}
+			// House positions may be between maze cells to center the group visually.
+			// Align to a real cell only after crossing the doorway.
+			Vector2I exitCell = Map.LocalToMap(Map.ToLocal(HouseExit.GlobalPosition));
+			_mazeEntryPosition = Map.ToGlobal(Map.MapToLocal(exitCell));
+			_houseState = HouseState.Waiting;
+		}
+		else
+		{
+			Vector2I cell = Map.LocalToMap(Map.ToLocal(GlobalPosition));
+			GlobalPosition = Map.ToGlobal(Map.MapToLocal(cell));
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_houseState == HouseState.Waiting)
+		{
+			Velocity = Vector2.Zero;
+			return;
+		}
+		if (_houseState == HouseState.Exiting)
+		{
+			MoveOutOfHouse(delta);
+			return;
+		}
+
 		float distanceLeft = Mathf.Max(Speed, 0f) * (float)delta;
 		bool moved = false;
 
@@ -92,6 +128,45 @@ public partial class Ghost : CharacterBody2D
 
 		Velocity = moved ? GetGridStep(_direction).Normalized() * Speed : Vector2.Zero;
 		UpdateAnimation(moved);
+	}
+
+	internal void ReleaseFromHouse()
+	{
+		if (_houseState == HouseState.Waiting)
+			_houseState = HouseState.Exiting;
+	}
+
+	private void MoveOutOfHouse(double delta)
+	{
+		// Align with the door, cross it, then join the maze at a tile center.
+		// This scripted movement passes through the house gate's map collision.
+		Vector2 target = !_alignedWithDoor ? HouseCenter.GlobalPosition
+			: !_clearedDoor ? HouseExit.GlobalPosition : _mazeEntryPosition;
+		Vector2 before = GlobalPosition;
+		Vector2 motion = target - before;
+		if (!motion.IsZeroApprox())
+			_direction = Mathf.Abs(motion.X) > Mathf.Abs(motion.Y)
+				? new Vector2(Mathf.Sign(motion.X), 0)
+				: new Vector2(0, Mathf.Sign(motion.Y));
+
+		GlobalPosition = before.MoveToward(target, Mathf.Max(Speed, 0f) * (float)delta);
+		bool moved = !GlobalPosition.IsEqualApprox(before);
+		Velocity = moved ? _direction * Speed : Vector2.Zero;
+		UpdateAnimation(moved);
+
+		if (GlobalPosition.IsEqualApprox(target))
+		{
+			if (!_alignedWithDoor)
+				_alignedWithDoor = true;
+			else if (!_clearedDoor)
+				_clearedDoor = true;
+			else
+			{
+				_houseState = HouseState.Active;
+				_hasTarget = false;
+				_requestedDirection = _direction;
+			}
+		}
 	}
 
 	private void GetInput()
